@@ -47,11 +47,40 @@ module P
     def to_byte(int)
       (int.to_i % 256).to_s(2).rjust(8, '0')
     end
+
+    # 1001000100000100 ->
+    def to_byte_hex_string(a)
+      a = byte_pad(a)
+      P::Str.sized_pieces(a, 4).map { |x| x.to_i(2).to_s(16) }.join('')
+    end
+
+    def sum_32b(a)
+      a = byte_pad(a)
+      P::Str.sized_pieces(a, 4).reduce(0) do |acc, x|
+        x = x.to_i(16)
+        acc += x
+      end.to_s(16).rjust(8, '0')
+    end
+
+    # '1' -> '00000001'
+    # '000000001' -> '0000000000000001'
+    def byte_pad(a)
+      pad_length = 8 * (a.length % 8)
+      a.rjust(pad_length, '0')
+    end
   end
+
   module Net
     extend self
     def ip_to_binary(ip)
       ip.split('.').map{|x| P::Bin.to_byte(x) }.join('.')
+    end
+  end
+
+  module Str
+    extend self
+    def sized_pieces(str, sp)
+      str.split('').each_slice(sp).to_a.map {|s| s.join('') }
     end
   end
 end
